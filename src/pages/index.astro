@@ -183,9 +183,10 @@ import Layout from '../layouts/Layout.astro';
 
 	</div><!-- /.slider -->
 
-	<!-- YouTube hidden player for BGM -->
-	<div id="ytPlayer" style="position:fixed; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden;">
-	</div>
+	<!-- HTML5 Audio player untuk BGM — tidak bisa diblokir ad blocker -->
+	<audio id="bgMusic" loop preload="auto" style="display:none;">
+		<source src="/audio/song.mp3" type="audio/mpeg" />
+	</audio>
 
 </Layout>
 
@@ -1081,79 +1082,53 @@ import Layout from '../layouts/Layout.astro';
 
 </script>
 
-<!-- YouTube BGM — is:inline agar tidak di-bundle Astro, window global tetap accessible -->
 <script is:inline>
-	/* ---------- BGM: YouTube IFrame API ---------- */
-	var ytPlayer, ytReady = false, playing = false, unmuted = false;
+	/* ---------- BGM: HTML5 Audio (tidak diblokir ad blocker) ---------- */
+	var bgMusic = document.getElementById('bgMusic');
+	var musicBtn = document.getElementById('musicBtn');
+	var musicStarted = false;
+	var musicPlaying = false;
 
-	// PENTING: definisikan callback SEBELUM inject script tag
-	// agar tidak terjadi race condition di production (Vercel)
-	window.onYouTubeIframeAPIReady = function () {
-		ytPlayer = new YT.Player('ytPlayer', {
-			height: '200', width: '200',
-			videoId: 'tGv7CUutzqU',
-			playerVars: {
-				autoplay: 1,
-				controls: 0,
-				loop: 1,
-				playlist: 'tGv7CUutzqU',
-				mute: 1,
-				enablejsapi: 1,
-				origin: window.location.origin
-			},
-			events: {
-				onReady: function (e) {
-					ytReady = true;
-					e.target.mute();
-					e.target.playVideo();
-				}
-			}
-		});
-	};
-
-	// Inject script SETELAH callback terdefinisi
-	(function () {
-		var tag = document.createElement('script');
-		tag.src = 'https://www.youtube.com/iframe_api';
-		var firstScript = document.getElementsByTagName('script')[0];
-		firstScript.parentNode.insertBefore(tag, firstScript);
-	})();
+	bgMusic.volume = 0.6;
 
 	function startMusic() {
-		if (unmuted) return;
-		if (!ytReady) {
-			// retry sampai YT siap
-			setTimeout(startMusic, 300);
-			return;
-		}
-		unmuted = true;
-		try {
-			ytPlayer.unMute();
-			ytPlayer.setVolume(60);
-			ytPlayer.playVideo();
-			playing = true;
-			document.getElementById('musicBtn').classList.add('spinning');
-		} catch (err) {
-			console.warn('YT startMusic error:', err);
+		if (musicStarted) return;
+		musicStarted = true;
+		var playPromise = bgMusic.play();
+		if (playPromise !== undefined) {
+			playPromise.then(function () {
+				musicPlaying = true;
+				musicBtn.classList.add('spinning');
+			}).catch(function () {
+				// Autoplay blocked — tunggu interaksi berikutnya
+				musicStarted = false;
+			});
 		}
 	}
 
-	// Trigger musik saat interaksi pertama
-	['click', 'touchstart', 'keydown', 'scroll'].forEach(function (evt) {
+	function toggleMusic() {
+		if (!musicStarted) {
+			startMusic();
+			return;
+		}
+		if (musicPlaying) {
+			bgMusic.pause();
+			musicPlaying = false;
+			musicBtn.classList.remove('spinning');
+		} else {
+			bgMusic.play();
+			musicPlaying = true;
+			musicBtn.classList.add('spinning');
+		}
+	}
+
+	// Mulai musik saat interaksi pertama user
+	['click', 'touchstart', 'keydown'].forEach(function (evt) {
 		document.addEventListener(evt, startMusic, { once: true, passive: true });
 	});
 
-	document.getElementById('musicBtn').addEventListener('click', function () {
-		if (!ytReady) return;
-		if (!unmuted) { startMusic(); return; }
-		if (playing) {
-			ytPlayer.pauseVideo();
-			playing = false;
-			document.getElementById('musicBtn').classList.remove('spinning');
-		} else {
-			ytPlayer.playVideo();
-			playing = true;
-			document.getElementById('musicBtn').classList.add('spinning');
-		}
+	musicBtn.addEventListener('click', function (e) {
+		e.stopPropagation(); // jangan trigger startMusic dua kali
+		toggleMusic();
 	});
 </script>
