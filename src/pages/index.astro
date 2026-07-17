@@ -1079,19 +1079,30 @@ import Layout from '../layouts/Layout.astro';
 		}
 	}
 
-	/* ---------- BGM: YouTube embed ---------- */
-	let ytPlayer: any, ytReady = false, playing = false, unmuted = false;
+</script>
 
-	const ytScript = document.createElement('script');
-	ytScript.src = 'https://www.youtube.com/iframe_api';
-	document.body.appendChild(ytScript);
+<!-- YouTube BGM — is:inline agar tidak di-bundle Astro, window global tetap accessible -->
+<script is:inline>
+	/* ---------- BGM: YouTube IFrame API ---------- */
+	var ytPlayer, ytReady = false, playing = false, unmuted = false;
 
-	(window as any).onYouTubeIframeAPIReady = function () {
-		ytPlayer = new (window as any).YT.Player('ytPlayer', {
-			height: '1', width: '1', videoId: 'tGv7CUutzqU',
-			playerVars: { autoplay: 1, controls: 0, loop: 1, playlist: 'tGv7CUutzqU', mute: 1 },
+	// PENTING: definisikan callback SEBELUM inject script tag
+	// agar tidak terjadi race condition di production (Vercel)
+	window.onYouTubeIframeAPIReady = function () {
+		ytPlayer = new YT.Player('ytPlayer', {
+			height: '200', width: '200',
+			videoId: 'tGv7CUutzqU',
+			playerVars: {
+				autoplay: 1,
+				controls: 0,
+				loop: 1,
+				playlist: 'tGv7CUutzqU',
+				mute: 1,
+				enablejsapi: 1,
+				origin: window.location.origin
+			},
 			events: {
-				onReady: (e: any) => {
+				onReady: function (e) {
 					ytReady = true;
 					e.target.mute();
 					e.target.playVideo();
@@ -1100,31 +1111,49 @@ import Layout from '../layouts/Layout.astro';
 		});
 	};
 
+	// Inject script SETELAH callback terdefinisi
+	(function () {
+		var tag = document.createElement('script');
+		tag.src = 'https://www.youtube.com/iframe_api';
+		var firstScript = document.getElementsByTagName('script')[0];
+		firstScript.parentNode.insertBefore(tag, firstScript);
+	})();
+
 	function startMusic() {
-		if (unmuted || !ytReady) { if (!ytReady) setTimeout(startMusic, 400); return; }
+		if (unmuted) return;
+		if (!ytReady) {
+			// retry sampai YT siap
+			setTimeout(startMusic, 300);
+			return;
+		}
 		unmuted = true;
-		ytPlayer.unMute();
-		ytPlayer.setVolume(60);
-		ytPlayer.playVideo();
-		playing = true;
-		(document.getElementById('musicBtn') as HTMLElement).classList.add('spinning');
+		try {
+			ytPlayer.unMute();
+			ytPlayer.setVolume(60);
+			ytPlayer.playVideo();
+			playing = true;
+			document.getElementById('musicBtn').classList.add('spinning');
+		} catch (err) {
+			console.warn('YT startMusic error:', err);
+		}
 	}
 
-	['click', 'touchstart', 'keydown', 'scroll'].forEach(evt => {
+	// Trigger musik saat interaksi pertama
+	['click', 'touchstart', 'keydown', 'scroll'].forEach(function (evt) {
 		document.addEventListener(evt, startMusic, { once: true, passive: true });
 	});
 
-	(document.getElementById('musicBtn') as HTMLElement).addEventListener('click', () => {
+	document.getElementById('musicBtn').addEventListener('click', function () {
 		if (!ytReady) return;
 		if (!unmuted) { startMusic(); return; }
 		if (playing) {
 			ytPlayer.pauseVideo();
 			playing = false;
-			(document.getElementById('musicBtn') as HTMLElement).classList.remove('spinning');
+			document.getElementById('musicBtn').classList.remove('spinning');
 		} else {
 			ytPlayer.playVideo();
 			playing = true;
-			(document.getElementById('musicBtn') as HTMLElement).classList.add('spinning');
+			document.getElementById('musicBtn').classList.add('spinning');
 		}
 	});
 </script>
