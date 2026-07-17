@@ -7,19 +7,34 @@ import Layout from '../layouts/Layout.astro';
 	<!-- Floating decor -->
 	<div class="floaters" id="floaters"></div>
 
-	<!-- Music toggle button -->
-	<div class="music-btn" id="musicBtn" title="Play/Pause musik">
-		<svg viewBox="0 0 100 70" width="28" height="20">
-			<rect x="2" y="2" width="96" height="66" rx="10" fill="var(--ink)" />
-			<rect x="8" y="8" width="84" height="54" rx="6" fill="var(--cream-2)" />
-			<circle class="reel" cx="32" cy="34" r="13" fill="none" stroke="var(--ink)" stroke-width="3"
-				stroke-dasharray="3 5" />
-			<circle cx="32" cy="34" r="4" fill="var(--ink)" />
-			<circle class="reel" cx="68" cy="34" r="13" fill="none" stroke="var(--ink)" stroke-width="3"
-				stroke-dasharray="3 5" />
-			<circle cx="68" cy="34" r="4" fill="var(--ink)" />
-			<rect x="18" y="50" width="64" height="7" rx="2.5" fill="var(--pink)" />
-		</svg>
+	<!-- Music toggle + info pill -->
+	<div class="music-bar" id="musicBar">
+		<div class="music-btn" id="musicBtn" title="Play/Pause musik">
+			<svg viewBox="0 0 100 70" width="28" height="20">
+				<rect x="2" y="2" width="96" height="66" rx="10" fill="var(--ink)" />
+				<rect x="8" y="8" width="84" height="54" rx="6" fill="var(--cream-2)" />
+				<circle class="reel" cx="32" cy="34" r="13" fill="none" stroke="var(--ink)" stroke-width="3"
+					stroke-dasharray="3 5" />
+				<circle cx="32" cy="34" r="4" fill="var(--ink)" />
+				<circle class="reel" cx="68" cy="34" r="13" fill="none" stroke="var(--ink)" stroke-width="3"
+					stroke-dasharray="3 5" />
+				<circle cx="68" cy="34" r="4" fill="var(--ink)" />
+				<rect x="18" y="50" width="64" height="7" rx="2.5" fill="var(--pink)" />
+			</svg>
+		</div>
+		<!-- Info pill: muncul saat musik play -->
+		<div class="music-info" id="musicInfo">
+			<div class="music-notes" aria-hidden="true">
+				<span class="note n1">♪</span>
+				<span class="note n2">♫</span>
+				<span class="note n3">♪</span>
+			</div>
+			<div class="music-ticker-wrap">
+				<div class="music-ticker" id="musicTicker">
+					<span>About You — The 1975&nbsp;&nbsp;&nbsp;✦&nbsp;&nbsp;&nbsp;About You — The 1975&nbsp;&nbsp;&nbsp;✦&nbsp;&nbsp;&nbsp;</span>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<!-- Bottom navigation bar (dots + arrows) -->
@@ -87,7 +102,7 @@ import Layout from '../layouts/Layout.astro';
 				<p>Happy 21st Birthday to the person who makes my world brighter! Pada tanggal 29 Juli ini, kamu resmi
 					berusia 21 tahun. Kamu adalah definisi dari keajaiban yang nyata. Aku sudah menyiapkan beberapa
 					kenangan kecil untukmu di slide berikutnya. Semoga kamu suka!</p>
-				<div class="sign">— Your Universe 💋</div>
+				<div class="sign">— Rafli 💋</div>
 			</div>
 		</section>
 
@@ -522,12 +537,19 @@ import Layout from '../layouts/Layout.astro';
 		}
 	}
 
-	/* music toggle */
-	.music-btn {
+	/* music bar wrapper */
+	.music-bar {
 		position: fixed;
 		left: 20px;
 		top: 20px;
 		z-index: 60;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	/* music button */
+	.music-btn {
 		width: 46px;
 		height: 46px;
 		border-radius: 50%;
@@ -540,15 +562,12 @@ import Layout from '../layouts/Layout.astro';
 		font-size: 18px;
 		box-shadow: 3px 3px 0 var(--shadow);
 		transition: transform .2s;
+		flex-shrink: 0;
 	}
 
-	.music-btn:hover {
-		transform: scale(1.08);
-	}
+	.music-btn:hover { transform: scale(1.08); }
 
-	.music-btn svg {
-		display: block;
-	}
+	.music-btn svg { display: block; }
 
 	.music-btn .reel {
 		transform-origin: center;
@@ -560,15 +579,92 @@ import Layout from '../layouts/Layout.astro';
 	}
 
 	@keyframes reelSpin {
-		from {
-			transform: rotate(0deg);
-		}
-
-		to {
-			transform: rotate(360deg);
-		}
+		from { transform: rotate(0deg); }
+		to { transform: rotate(360deg); }
 	}
 
+	/* music info pill */
+	.music-info {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		background: rgba(246, 240, 230, .88);
+		backdrop-filter: blur(8px);
+		border: 1.5px solid var(--ink);
+		border-radius: 999px;
+		padding: 6px 14px 6px 10px;
+		box-shadow: 3px 3px 0 var(--shadow);
+		max-width: 0;
+		overflow: hidden;
+		opacity: 0;
+		transition: max-width .5s cubic-bezier(.34,1.4,.64,1), opacity .4s ease, padding .5s;
+		padding-left: 0;
+		padding-right: 0;
+		white-space: nowrap;
+		pointer-events: none;
+	}
+
+	.music-info.show {
+		max-width: 220px;
+		opacity: 1;
+		padding: 6px 14px 6px 10px;
+		pointer-events: auto;
+	}
+
+	/* bouncing music notes */
+	.music-notes {
+		display: flex;
+		align-items: flex-end;
+		gap: 2px;
+		height: 20px;
+		flex-shrink: 0;
+	}
+
+	.note {
+		display: inline-block;
+		font-size: 13px;
+		color: var(--pink);
+		animation: noteBounce 1s ease-in-out infinite;
+		line-height: 1;
+	}
+	.note.n1 { animation-delay: 0s; }
+	.note.n2 { animation-delay: .18s; font-size: 15px; }
+	.note.n3 { animation-delay: .36s; }
+
+	@keyframes noteBounce {
+		0%, 100% { transform: translateY(0); opacity: .6; }
+		50% { transform: translateY(-6px); opacity: 1; }
+	}
+
+	/* scrolling ticker */
+	.music-ticker-wrap {
+		overflow: hidden;
+		max-width: 140px;
+	}
+
+	.music-ticker {
+		display: inline-flex;
+		animation: ticker 8s linear infinite;
+		white-space: nowrap;
+	}
+
+	.music-ticker span {
+		font-family: 'Quicksand', sans-serif;
+		font-size: .72rem;
+		font-weight: 600;
+		color: var(--ink);
+		letter-spacing: .3px;
+	}
+
+	@keyframes ticker {
+		0%   { transform: translateX(0); }
+		100% { transform: translateX(-50%); }
+	}
+
+	@media(max-width: 400px) {
+		.music-info.show { max-width: 160px; }
+		.music-ticker-wrap { max-width: 100px; }
+	}
 	/* HERO */
 	#s1 h1 {
 		font-size: clamp(2.2rem, 6vw, 4.2rem);
@@ -872,67 +968,136 @@ import Layout from '../layouts/Layout.astro';
 		}
 	}
 
-	/* global responsive tuning */
-	@media(max-width:480px) {
+	/* =============================================
+	   RESPONSIVE — MOBILE FIRST
+	   ============================================= */
+
+	/* Small phones (≤ 480px) */
+	@media (max-width: 480px) {
+		/* General section padding */
 		.section {
-			padding: 6vh 6vw;
+			padding: 7vh 5vw 10vh; /* extra bottom for nav bar */
 		}
 
-		.memory-row,
-		.number-row {
-			gap: 4vh;
-		}
+		/* Countdown */
+		.countdown-grid { gap: 3vw; margin-top: 3vh; }
+		.cd-box { width: min(72px, 20vw); padding: 1.4vh 0; }
+		.cd-box .cd-num { font-size: clamp(1.5rem, 7vw, 2rem); }
+		.cd-box .cd-label { font-size: .65rem; }
+		.cd-sub { font-size: 1rem; margin-top: 2vh; }
+		.cd-sub.cd-celebrate { font-size: 1.35rem; }
 
+		/* Hero */
+		#s1 h1 { font-size: clamp(1.8rem, 8vw, 2.4rem); }
+		.envelope-wrap { margin: 3vh 0 1.5vh; }
+		.envelope {
+			width: min(300px, 84vw);
+			height: min(200px, 50vw);
+		}
+		.caption-hint { font-size: 1.1rem; }
+
+		/* Letter */
+		.letter-card { padding: 4vh 5vw; }
+		.letter-card .dear { font-size: 1.45rem; }
+		.letter-card p { font-size: .9rem; margin-top: 1.6vh; }
+		.letter-card .sign { font-size: 1.3rem; margin-top: 2vh; }
+
+		/* Memory — stack vertically on small screens */
+		.memory-row {
+			gap: 3vh;
+			flex-direction: column;
+			align-items: center;
+		}
 		.polaroid-frame {
-			width: min(240px, 78vw);
+			width: min(260px, 82vw);
+			transform: rotate(-2deg);
+			padding: 10px 10px 32px;
 		}
-
-		.letter-card {
-			padding: 5vh 6vw;
+		.memory-text {
+			text-align: center;
+			max-width: 90vw;
 		}
+		.memory-text .tag { font-size: 1.3rem; }
+		.memory-text p { font-size: .88rem; }
 
-		.letter-card p {
-			font-size: .95rem;
+		/* Big 21 — stack vertically */
+		.number-row {
+			gap: 1.5vh;
+			flex-direction: column;
 		}
+		.big21 { font-size: clamp(5rem, 22vw, 7rem); }
+		.number-text { text-align: center; max-width: 90vw; }
+		.number-text h2 { font-size: 1.8rem; }
+		.number-text p { font-size: .9rem; }
 
+		/* Reasons */
 		.reasons-list {
-			gap: 1.3vh 4vw;
+			grid-template-columns: 1fr;
+			gap: 1.2vh;
+			margin-top: 2vh;
 		}
+		.reasons-list div { font-size: .92rem; }
 
-		.reasons-list div {
-			font-size: .95rem;
-		}
+		/* Final / cake */
+		.cake-svg { width: min(160px, 42vw); }
+		#s6 h2 { font-size: clamp(1.8rem, 7vw, 2.4rem); }
+		.wish-line { font-size: 1.2rem; }
+		.blown-msg { font-size: 1.35rem; }
+
+		/* Music pill */
+		.music-info.show { max-width: 150px; }
+		.music-ticker-wrap { max-width: 90px; }
 	}
 
-	@media(max-height:560px) {
-		.section {
-			padding: 4vh 6vw;
-		}
-
-		h1 {
-			font-size: 1.6rem !important;
-		}
-
-		.envelope-wrap {
-			margin: 2.5vh 0 1.5vh;
-		}
-
+	/* Very small phones (≤ 360px) */
+	@media (max-width: 360px) {
+		.cd-box { width: min(64px, 20vw); }
 		.envelope {
-			height: min(160px, 40vh);
+			width: min(270px, 88vw);
+			height: min(180px, 48vw);
 		}
+		.polaroid-frame { width: min(230px, 86vw); }
+		.reasons-list { padding: 0 2vw; }
+		.music-info.show { max-width: 120px; }
+		.music-ticker-wrap { max-width: 65px; }
+	}
 
-		.memory-row,
-		.number-row {
-			transform: scale(.9);
-		}
+	/* Landscape phone (short screen) */
+	@media (max-height: 500px) {
+		.section { padding: 3vh 6vw 8vh; }
+		h1 { font-size: clamp(1.3rem, 4vw, 1.8rem) !important; }
 
-		.big21 {
-			font-size: 5rem;
-		}
+		/* Countdown compact */
+		.countdown-grid { margin-top: 1.5vh; gap: 2vw; }
+		.cd-box { padding: 1vh 0; width: min(64px, 16vw); }
+		.cd-sub { margin-top: 1.2vh; font-size: .95rem; }
 
-		.cake-svg {
-			width: 130px;
-		}
+		/* Envelope compact */
+		.envelope-wrap { margin: 1.5vh 0 1vh; }
+		.envelope { height: min(130px, 34vh); width: min(260px, 70vw); }
+
+		/* Memory row horizontal on landscape */
+		.memory-row { gap: 4vw; flex-direction: row; align-items: flex-start; }
+		.polaroid-frame { width: min(200px, 40vw); padding: 8px 8px 28px; }
+		.memory-text { max-width: 45vw; }
+
+		/* Number compact */
+		.number-row { gap: 4vw; flex-direction: row; }
+		.big21 { font-size: 5rem; }
+
+		/* Reasons compact */
+		.reasons-list { grid-template-columns: 1fr 1fr; margin-top: 1.5vh; gap: 1vh 4vw; }
+
+		/* Cake compact */
+		.cake-svg { width: 110px; }
+		.cake-wrap { margin-bottom: 1vh; }
+	}
+
+	/* Tablet (641px – 1024px) */
+	@media (min-width: 641px) and (max-width: 1024px) {
+		.memory-row { gap: 4vw; }
+		.polaroid-frame { width: min(280px, 42vw); }
+		.number-text { max-width: 300px; }
 	}
 </style>
 
@@ -1084,12 +1249,16 @@ import Layout from '../layouts/Layout.astro';
 
 <script is:inline>
 	/* ---------- BGM: HTML5 Audio (tidak diblokir ad blocker) ---------- */
-	var bgMusic = document.getElementById('bgMusic');
-	var musicBtn = document.getElementById('musicBtn');
+	var bgMusic    = document.getElementById('bgMusic');
+	var musicBtn   = document.getElementById('musicBtn');
+	var musicInfo  = document.getElementById('musicInfo');
 	var musicStarted = false;
 	var musicPlaying = false;
 
 	bgMusic.volume = 0.6;
+
+	function showInfo()  { musicInfo.classList.add('show'); }
+	function hideInfo()  { musicInfo.classList.remove('show'); }
 
 	function startMusic() {
 		if (musicStarted) return;
@@ -1099,6 +1268,7 @@ import Layout from '../layouts/Layout.astro';
 			playPromise.then(function () {
 				musicPlaying = true;
 				musicBtn.classList.add('spinning');
+				showInfo();
 			}).catch(function () {
 				// Autoplay blocked — tunggu interaksi berikutnya
 				musicStarted = false;
@@ -1115,10 +1285,12 @@ import Layout from '../layouts/Layout.astro';
 			bgMusic.pause();
 			musicPlaying = false;
 			musicBtn.classList.remove('spinning');
+			hideInfo();
 		} else {
 			bgMusic.play();
 			musicPlaying = true;
 			musicBtn.classList.add('spinning');
+			showInfo();
 		}
 	}
 
