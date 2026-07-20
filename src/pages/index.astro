@@ -111,16 +111,16 @@ import Layout from '../layouts/Layout.astro';
 			<div class="memory-row">
 				<div class="polaroid-frame">
 					<div class="polaroid-grid">
-						<div class="poloroid-slot">
+						<div class="polaroid-slot">
 							<img src="/images/foto1 (1).jpg" alt="Kenangan bersama Kayla 1" />
 						</div>
-						<div class="poloroid-slot">
+						<div class="polaroid-slot">
 							<img src="/images/foto1 (2).jpg" alt="Kenangan bersama Kayla 2" />
 						</div>
-						<div class="poloroid-slot">
+						<div class="polaroid-slot">
 							<img src="/images/foto1 (3).jpg" alt="Kenangan bersama Kayla 3" />
 						</div>
-						<div class="poloroid-slot">
+						<div class="polaroid-slot">
 							<img src="/images/foto1 (4).jpg" alt="Kenangan bersama Kayla 4" />
 						</div>
 					</div>
@@ -795,7 +795,7 @@ import Layout from '../layouts/Layout.astro';
 		gap: 10px;
 	}
 
-	.poloroid-slot {
+	.polaroid-slot {
 		aspect-ratio: 1/1;
 		background: repeating-linear-gradient(45deg, #e7dccb, #e7dccb 6px, #ddd0ba 6px, #ddd0ba 12px);
 		border: 1.5px dashed var(--ink-soft);
@@ -807,7 +807,7 @@ import Layout from '../layouts/Layout.astro';
 		overflow: hidden;
 	}
 
-	.poloroid-slot img {
+	.polaroid-slot img {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
@@ -1099,6 +1099,67 @@ import Layout from '../layouts/Layout.astro';
 		.polaroid-frame { width: min(280px, 42vw); }
 		.number-text { max-width: 300px; }
 	}
+
+	/* ═══════════════════════════════════════════
+	   PER-SLIDE BACKGROUND GRADIENTS
+	   ═══════════════════════════════════════════ */
+	#s0 { background: linear-gradient(145deg, #ece4f5 0%, var(--cream) 55%, #fce4ec 100%); }
+	#s1 { background: linear-gradient(145deg, #fff0f5 0%, var(--cream-2) 50%, #fde8ec 100%); }
+	#s2 { background: linear-gradient(145deg, #e8f4f8 0%, var(--cream-2) 55%, #f0f7ee 100%); }
+	#s3 { background: linear-gradient(145deg, #fff8e1 0%, var(--cream-2) 55%, var(--cream) 100%); }
+	#s4 { background: linear-gradient(145deg, #fce4ec 0%, #fff8e1 50%, var(--cream) 100%); }
+	#s5 { background: linear-gradient(145deg, #f3e5f5 0%, var(--cream-2) 50%, #fce4ec 100%); }
+	#s6 { background: linear-gradient(145deg, #fce4ec 0%, #fff0f5 50%, var(--cream-2) 100%); }
+
+	/* ═══════════════════════════════════════════
+	   SLIDE ENTRANCE ANIMATIONS
+	   ═══════════════════════════════════════════ */
+
+	/* Apply fade+slide-up to direct section children,
+	   excluding elements that have their own separate show/reveal logic */
+	.section > *:not(.cd-emoji-burst):not(.letter-card):not(.blown-msg):not(.reasons-list) {
+		opacity: 0;
+		transform: translateY(22px);
+		transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+	.section.is-active > *:not(.cd-emoji-burst):not(.letter-card):not(.blown-msg):not(.reasons-list) {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	/* Staggered entrance delays for section children */
+	.section > *:not(.cd-emoji-burst):not(.letter-card):not(.blown-msg):not(.reasons-list):nth-child(1) { transition-delay: 0.05s; }
+	.section > *:not(.cd-emoji-burst):not(.letter-card):not(.blown-msg):not(.reasons-list):nth-child(2) { transition-delay: 0.16s; }
+	.section > *:not(.cd-emoji-burst):not(.letter-card):not(.blown-msg):not(.reasons-list):nth-child(3) { transition-delay: 0.27s; }
+	.section > *:not(.cd-emoji-burst):not(.letter-card):not(.blown-msg):not(.reasons-list):nth-child(4) { transition-delay: 0.38s; }
+
+	/* ═══════════════════════════════════════════
+	   REASONS LIST — STAGGERED REVEAL
+	   ═══════════════════════════════════════════ */
+
+	/* Each reason item slides in from left, staggered */
+	.reasons-list div {
+		opacity: 0;
+		transform: translateX(-14px);
+		transition: opacity 0.42s ease, transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+	.section.is-active .reasons-list div {
+		opacity: 1;
+		transform: none;
+	}
+
+	/* Staggered delay per item */
+	.reasons-list div:nth-child(1)  { transition-delay: 0.10s; }
+	.reasons-list div:nth-child(2)  { transition-delay: 0.18s; }
+	.reasons-list div:nth-child(3)  { transition-delay: 0.26s; }
+	.reasons-list div:nth-child(4)  { transition-delay: 0.34s; }
+	.reasons-list div:nth-child(5)  { transition-delay: 0.42s; }
+	.reasons-list div:nth-child(6)  { transition-delay: 0.50s; }
+	.reasons-list div:nth-child(7)  { transition-delay: 0.58s; }
+	.reasons-list div:nth-child(8)  { transition-delay: 0.66s; }
+	.reasons-list div:nth-child(9)  { transition-delay: 0.74s; }
+	.reasons-list div:nth-child(10) { transition-delay: 0.82s; }
+	.reasons-list div:nth-child(11) { transition-delay: 0.90s; }
 </style>
 
 <script>
@@ -1126,6 +1187,8 @@ import Layout from '../layouts/Layout.astro';
 		dots[i].classList.add('active');
 		prevBtn.toggleAttribute('disabled', i === 0);
 		nextBtn.toggleAttribute('disabled', i === sections.length - 1);
+		// Trigger entrance animation — never removed so content stays visible once revealed
+		sections[i].classList.add('is-active');
 		if (sections[i].id === 's2') letterCard.classList.add('show');
 	}
 
@@ -1137,6 +1200,8 @@ import Layout from '../layouts/Layout.astro';
 		});
 	}, { root: slider, threshold: .6 });
 	sections.forEach(s => obs.observe(s));
+	// Reveal first slide immediately — avoids invisible-content flash before observer fires
+	sections[0].classList.add('is-active');
 
 	/* convert vertical mouse-wheel to horizontal slide */
 	slider.addEventListener('wheel', (e) => {
